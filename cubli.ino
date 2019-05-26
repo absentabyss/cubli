@@ -6,7 +6,7 @@ long accelX , accelY , accelZ; // Output del accel
 float gForceX , gForceY , gForceZ; // Accel en Gs
 
 long gyroX , gyroY , gyroZ; // Output del gyro
-float rotX , rotY , rotZ , gyroThreshold; // Gyro en grados/s gyroThreshold es para que el ruido del gyro no accione los motores. Creo que no importa igual
+float rotX , rotY , rotZ , gyroThreshold = 10; // Gyro en grados/s gyroThreshold es para que el ruido del gyro no accione los motores. Creo que no importa igual
 int gyroLim;
 
 float xOrient , yOrient , zOrient; // Orientacion
@@ -19,10 +19,10 @@ int ledPin = 13;
 // MOTOR
 // Pin del motor
 #define motorX 4
-#define x1 2
-#define x2 3
+#define x1 3
+#define x2 2
 
-int motorXSpeed = 0;
+int motorXSpeed = 100;
 
 // Lo primero que hace ardu
 void setup() {
@@ -49,7 +49,6 @@ void loop() {
   recordGyroRegisters();
   processOrient();
   printData();
-  delay(100);
 }
 
 void setupMPU(){ // Settea el modo del accel/gyro
@@ -99,7 +98,7 @@ void recordGyroRegisters() { // Pide data al gyro
 
 void processGyroData() { // Conversión del output del gyro a grados/s
   rotX = (gyroX - rotOffsetX) / 131.0;
-  if(fabs(rotX) > gyroThreshold){ 
+   if(fabs(rotX) > gyroThreshold){ 
     if(rotX >= 0){ // Controla la dirección del puente H
       digitalWrite(x1 , HIGH);
       digitalWrite(x2 , LOW);
@@ -107,7 +106,8 @@ void processGyroData() { // Conversión del output del gyro a grados/s
       digitalWrite(x1 , LOW);
       digitalWrite(x2 , HIGH);
     }
-    motorXSpeed = map(fabs(rotX) , 0 , gyroLim , 0 , 255); // Transforma la rotación a fuerza de motor (No va a funcionar, pero es para tener algo)
+//    motorXSpeed = map(fabs(rotX) , 0 , gyroLim , 0 , 255); // Transforma la rotación a fuerza de motor (No va a funcionar, pero es para tener algo)
+    motorXSpeed = 150;
     analogWrite(motorX , motorXSpeed);
   }
   rotY = (gyroY - rotOffsetY) / 131.0; 
@@ -141,5 +141,6 @@ void printData() { // Printea toda la data a la compu
   Serial.print(" Y = ");
   Serial.print(rotY);
   Serial.print(" Z = ");
+  Serial.print(motorXSpeed);
   Serial.println(rotZ);
 }
