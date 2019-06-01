@@ -6,10 +6,10 @@ long accelX , accelY , accelZ; // Output del accel
 float gForceX , gForceY , gForceZ; // Accel en Gs
 
 long gyroX , gyroY , gyroZ; // Output del gyro
-float rotX , rotY , rotZ , gyroThreshold = 10; // Gyro en grados/s gyroThreshold es para que el ruido del gyro no accione los motores. Creo que no importa igual
-int gyroLim;
+float rotX , rotY , rotZ; // Gyro en grados/s gyroThreshold es para que el ruido del gyro no accione los motores. Creo que no importa igual
 
-float xOrient , yOrient , zOrient; // Orientacion
+float xOrient , yOrient , zOrient , deltaY; // Orientacion. Los deltaX es xOrient - 90
+int deltaLim = 30; // Este es el máximo delta en el cuál el motor va a hacer fuerza
 
 long accelOffsetX = 0 , accelOffsetY = 0 , accelOffsetZ = 0 , rotOffsetX = 0 , rotOffsetY = 0 , rotOffsetZ = 0; // Para tarar el accel/gyro
 
@@ -18,16 +18,16 @@ int ledPin = 13;
 
 // MOTOR
 // Pin del motor
-#define motorX 4
+#define motorY 5 // Tienen que ser los pines 3, 5, 6, 9, 10 u 11 que pueden mandar PWM
 #define x1 3
 #define x2 2
 
-int motorXSpeed = 100;
+int motorYSpeed = 0;
 
 // Lo primero que hace ardu
 void setup() {
   pinMode(ledPin , OUTPUT); // Le dice a ardu que el pin ledPin es para escribir información
-  pinMode(motorX , OUTPUT);
+  pinMode(motorY , OUTPUT);
   pinMode(x1 , OUTPUT);
   pinMode(x2 , OUTPUT);
   Serial.begin(9600); // Para que ardu pueda printear a la compu
@@ -98,18 +98,6 @@ void recordGyroRegisters() { // Pide data al gyro
 
 void processGyroData() { // Conversión del output del gyro a grados/s
   rotX = (gyroX - rotOffsetX) / 131.0;
-   if(fabs(rotX) > gyroThreshold){ 
-    if(rotX >= 0){ // Controla la dirección del puente H
-      digitalWrite(x1 , HIGH);
-      digitalWrite(x2 , LOW);
-    }else{
-      digitalWrite(x1 , LOW);
-      digitalWrite(x2 , HIGH);
-    }
-//    motorXSpeed = map(fabs(rotX) , 0 , gyroLim , 0 , 255); // Transforma la rotación a fuerza de motor (No va a funcionar, pero es para tener algo)
-    motorXSpeed = 150;
-    analogWrite(motorX , motorXSpeed);
-  }
   rotY = (gyroY - rotOffsetY) / 131.0; 
   rotZ = (gyroZ - rotOffsetZ) / 131.0;
 }
@@ -127,6 +115,22 @@ void processOrient(){ // Usa los datos de gForce para saber la orientación de a
   }else{
     digitalWrite(ledPin , LOW);
   }
+  deltaY = yOrient - 90.0;
+  if(fabs(deltaY) <= deltaLim){
+    if(deltaY >= 0){ // Controla la dirección del puente H
+      digitalWrite(x1 , HIGH);
+      digitalWrite(x2 , LOW);
+    }else{
+      digitalWrite(x1 , LOW);
+      digitalWrite(x2 , HIGH);
+    }
+    motorYSpeed = map(fabs(deltaY) , 0 , deltaLim , 0 , 255); // Transforma la rotación a fuerza de motor (No va a funcionar, pero es para tener algo)
+    analogWrite(motorY , motorYSpeed);
+  }else{
+    digitalWrite(x1 , LOW);
+    digitalWrite(x2 , LOW);
+    analogWrite(motorY , 0);
+  }
 }
 
 void printData() { // Printea toda la data a la compu
@@ -141,6 +145,5 @@ void printData() { // Printea toda la data a la compu
   Serial.print(" Y = ");
   Serial.print(rotY);
   Serial.print(" Z = ");
-  Serial.print(motorXSpeed);
   Serial.println(rotZ);
 }
