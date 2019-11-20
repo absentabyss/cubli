@@ -1,0 +1,22 @@
+MAX = 4;
+d = 0.01;
+k = 0.01;
+t = 0.01;
+scene.angle > k || scene.angle < -k ? {
+	motorTorque = 20 * sin(scene.angle);
+	scene.angle > 0 ? {ccw = true} : {ccw = false};
+} : {
+	scene.angvel > d ? {
+		motorTorque = MAX;
+		ccw = true
+	} : {
+	scene.angvel < -d ? {
+		motorTorque = MAX;
+		ccw = false
+	} : {
+	motorTorque = t;
+	scene.angle > 0 ? {
+		ccw = true
+	} : {
+		ccw = false
+}}}}
