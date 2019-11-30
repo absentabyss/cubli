@@ -1,11 +1,17 @@
 (e)=>{
-	sens = 1;
-    motorTorque = 20 * sin(scene.angle);
-    scene.angle > 0 ? {
-        ccw = true;
-		scene.angvel < -sens ? {motorTorque = 0} : {}
-    } : {
-        ccw = false;
-		scene.angvel > sens ? {motorTorque = 0} : {}
-    }
-}
+	L = math.sqrt(2) * 0.5;
+	scene.angle > 0 ? {
+		scene.angvel > - math.sqrt(2 * 9.8 * L * (1 - cos(scene.angle))) / L ? {
+			ccw = true;
+			motorTorque = 5
+		} : {
+			motorTorque = 0
+		}
+	} : {
+		scene.angvel < math.sqrt(2 * 9.8 * L * (1 - cos(scene.angle))) / L ? {
+			ccw = false;
+			motorTorque = 5
+		} : {
+			motorTorque = 0
+}}}
+
